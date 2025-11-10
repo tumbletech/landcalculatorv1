@@ -1,1 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Land Calculator | Live Tracker</title>
+
+  <!-- Leaflet CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
+
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+    }
+    #map {
+      height: 100vh;
+      width: 100%;
+    }
+    .legend {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.2);
+      padding: 0.5rem 0.75rem;
+      font-size: 0.85rem;
+      z-index: 1000;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- MAP -->
+  <div id="map"></div>
+
+  <!-- LEGEND -->
+  <div class="legend">
+    <b>📍 Live Tracker</b><br>
+    Blue Marker – Your Current Location<br>
+    Red Marker – Property Location
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <script>
+    // Default map center (Austin, TX)
+    const map = L.map('map').setView([30.2672, -97.7431], 10);
+
+    // Base layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Retrieve stored property location from localStorage (if any)
+    const propertyLat = localStorage.getItem('latitude');
+    const propertyLon = localStorage.getItem('longitude');
+
+    if (propertyLat && propertyLon) {
+      L.marker([propertyLat, propertyLon], {
+        icon: L.icon({
+          iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png',
+          iconSize: [32, 32],
+          iconAnchor: [16, 32]
+        })
+      }).addTo(map)
+        .bindPopup('🏡 Selected Property')
+        .openPopup();
+
+      map.setView([propertyLat, propertyLon], 14);
+    }
+
+    // Live tracker (browser geolocation)
+    if (navigator.geolocation) {
+      navigator.geolocation.watchPosition(
+        (pos) => {
+          const lat = pos.coords.latitude;
+          const lon = pos.coords.longitude;
+
+          if (window.userMarker) {
+            window.userMarker.setLatLng([lat, lon]);
+          } else {
+            window.userMarker = L.marker([lat, lon], {
+              icon: L.icon({
+                iconUrl: 'https://cdn-icons-png.flaticon.com/512/447/447031.png',
+                iconSize: [28, 28],
+                iconAnchor: [14, 28]
+              })
+            }).addTo(map)
+              .bindPopup('📍 You are here')
+              .openPopup();
+          }
+        },
+        (err) => console.error('Geolocation error:', err),
+        { enableHighAccuracy: true }
+      );
+    } else {
+      alert('Your browser does not support geolocation.');
+    }
+  </script>
+</body>
+</html>
 
